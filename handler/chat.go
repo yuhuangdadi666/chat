@@ -72,8 +72,8 @@ func Chat(c *gin.Context) {
 		for {
 			messageType, payload, err := conn.ReadMessage()
 			if err != nil {
+				log.Errorf("failed to read message, %+v", err)
 				conn.Close()
-				log.Errorf("failed to read message")
 				break
 			}
 			if messageType != websocket.TextMessage {
@@ -81,10 +81,11 @@ func Chat(c *gin.Context) {
 			}
 			chatData := &data.ChatData{}
 			if err := json.NewDecoder(bytes.NewReader(payload)).Decode(chatData); err != nil {
-				conn.Close()
 				log.Errorf("failed to decode json")
+				conn.Close()
 				break
 			}
+			log.Infof("succeed to receive chat data: %+v", chatData)
 			toConn, ok := connections[chatData.ToUsername]
 			if !ok {
 				// 不在线
